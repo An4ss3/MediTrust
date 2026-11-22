@@ -1,58 +1,75 @@
 # MediTrust — Project Status
 
-**Dernière mise à jour :** 21/11/2026, session 2 (Kiro)
+**Dernière mise à jour :** 22/11/2026, session 3 (Kiro)
 
 ## Phase actuelle
-**PHASE 0 — REQUIREMENTS VALIDATION**
+**PHASE 1 — ENVIRONNEMENT ET DONNÉES**
 
 ## Statut
-**AWAITING REVIEW AND APPROVAL** (v0.2 : architecture acceptée sur le principe, approbation finale en attente)
+**IMPLÉMENTÉE ET VALIDÉE EN LOCAL — EN ATTENTE DE L'EXÉCUTION COLAB ET DE LA REVUE** (Phase 2 non commencée)
+
+## Dépôt
+- URL : https://github.com/An4ss3/MediTrust (public)
+- Branche `main`. Commit de la Phase 1 : `627e424`.
+- Identité Git configurée **pour ce dépôt seulement** : `Anasse Harki <202443320+An4ss3@users.noreply.github.com>`, pour ne pas publier l'adresse Gmail.
+- Colab clone le dépôt sans identifiants et ne pousse jamais.
+
+## Environnement
+| Élément | Local (Windows 11) | Colab |
+|---|---|---|
+| Python | 3.13.9 | à relever (notebook 01, cellule 1) |
+| numpy | 2.3.4 | à relever |
+| matplotlib | 3.10.8 | à relever |
+| pytest | 9.2.0 (installé en session 3) | installé par `requirements.txt` si absent |
+| torch | non installé (non nécessaire en Phase 1) | préinstallé, version à relever |
+| git | 2.50.0 ; GitHub CLI absent ; authentification via Git Credential Manager (compte `An4ss3`) | — |
+
+`requirements.txt` ne contient que des bornes inférieures (numpy, matplotlib, pytest, torch) pour ne pas réinstaller torch sur Colab. Les versions exactes seront relevées dans les JSON de runs à partir de la Phase 2.
 
 ## Travail réalisé (avec preuve)
-- Session 1 :
-  - Répertoire `C:\Users\harki\Downloads\MediTrust` inspecté : vide au démarrage. Python local 3.13.9, PyTorch non installé.
-  - Recherche vérifiée en ligne : métadonnées officielles de PathMNIST (`info.py`), MedMNIST+ (`on_medmnist_plus.md`, Zenodo 10519652), source NCT-CRC-HE (Zenodo 1214456), benchmarks officiels, Doerrich et al. 2025, fiche timm DeiT-Tiny, documentation de quantification ONNX Runtime, FAQ Colab.
-  - Les 27 identifiants arXiv cités ont été vérifiés via l'API arXiv, et le DOI PLOS Medicine (Kather 2019) via Crossref.
-  - Rédaction des 4 documents de `docs/` (v0.1).
-- Session 2 : intégration des 5 corrections de revue (v0.2), avec cohérence vérifiée entre les 4 documents :
-  1. **Évaluation fédérée** : distinction entre métriques additives et non linéaires ; statistiques suffisantes (protocole, §1.3).
-  2. **D6** : sélection de M* sur validation propre et PGD-10 sur validation, avec contrôles d'éligibilité.
-  3. **Discipline du test** : pré-enregistrement, registre de gel, `evaluate_test` verrouillé, règle pour les défauts de code, CR3 déplacé sur la validation (protocole, §7).
-  4. **Budget provisoire** : niveaux de repli N0–N3 choisis après le pilote et gelés avant E1 (protocole, §9).
-  5. **T4** : analyse de la fiche officielle et décision D15 (cahier des charges, §8.2).
-- Aucun code, aucun téléchargement de données, aucun dépôt Git créé.
+- Sessions 1–2 : spécifications v0.1 et v0.2.
+- Session 3 (22/11/2026) :
+  - v0.2 approuvée. D6 clarifié en v0.3 : une relation FGSM/PGD inattendue est une alerte qui déclenche un PGD renforcé (50 itérations × 5 départs), sans rejet automatique.
+  - Fichiers créés : `.gitignore`, `.gitattributes`, `README.md`, `requirements.txt`, `src/data.py`, `tests/conftest.py`, `tests/test_data.py`, `notebooks/01_data.ipynb`, `results/partitions/{IID,DIR05}_k4_s0.npz`, `results/figures/phase1_*.png`, `results/phase1_data_summary.json`.
+  - Dataset téléchargé en local (`data/pathmnist_64.npz`, 1,07 Go, ignoré par Git) : MD5 `55aa9c1e0525abe5a6b9d8343a507616` conforme.
+  - Intégrité vérifiée : train (89 996, 64, 64, 3), val (10 004, …), test (7 180, …), uint8, pixels dans [0, 255], 9 classes présentes dans chaque split.
+  - Effectifs par classe : train [9366, 9509, 10360, 10401, 8006, 12182, 7886, 9401, 12885] ; val [1041, 1057, 1152, 1156, 890, 1354, 877, 1045, 1432] ; test [1338, 847, 339, 634, 1035, 592, 741, 421, 1233]. Train et val ont les mêmes proportions ; le test a un mélange de classes différent (adipose 18,6 % contre 10,4 %, debris 4,7 % contre 11,5 %).
+  - Partitions (K = 4, graine 0), disjointes et exhaustives sur train et val :
+    - `IID` : train [22500, 22496, 22500, 22500], val [2499, 2501, 2505, 2499], sha256 `609240177941c0ed…`
+    - `DIR05` (α = 0,5, 1 tirage) : train [32289, 12034, 21126, 24547], val [3590, 1338, 2348, 2728], sha256 `e56860455cfc27fb…`. Fort déséquilibre (par ex. client 1 : 8 images adipose ; client 2 : 5 images debris).
+  - Tests : `pytest` local → **13 réussis, 1 ignoré** (prétraitement PyTorch, torch absent). Rejoués avec succès sur un clone anonyme du dépôt public.
+  - Notebook 01 : toutes les cellules de code exécutées en local (chemin non Colab), partitions régénérées identiques aux fichiers versionnés.
 
 ## Tâche en cours
-Approbation finale de la v0.2 par Anasse (et ChatGPT).
+Revue de la Phase 1 par Anasse (et ChatGPT).
 
-## Prochaine tâche (après approbation)
-Phase 1, première tâche : vérifier les versions sur Colab, figer `requirements.txt`, créer `.gitignore` et `src/data.py` (chargement de `pathmnist_64.npz` avec contrôle MD5 et des effectifs), puis le notebook 01 d'exploration.
+## Prochaine tâche
+1. Anasse : exécuter `notebooks/01_data.ipynb` sur Colab (« Run all », runtime CPU), vérifier « identical to versioned file: True » et « 14 passed », relever les versions affichées.
+2. Après revue et approbation : Phase 2 (modèles, pilote, E1). Prérequis : D15.
 
 ## Décisions en attente
-D1–D15 (voir `CAHIER_DES_CHARGES.md`, §22). Points à trancher en priorité :
-- **D6** : seuils de 2 points (perte de macro-F1 propre) et de 5 points (gain d'accuracy PGD-10 à 4/255).
-- **D10** : cible de ≤ 15 h GPU et seuils des niveaux N1 (15 h), N2 (25 h) et N3 (40 h).
-- **D7** : couverture cible de 90 %.
-- **D12** : dépôt public ou privé.
-- **D14** : date de rendu.
-- **D15** : confirmation par l'enseignant que T4 est couvert sans CLIP/VLM. CLIP n'est pas ajouté sans approbation explicite.
+- **D15** : confirmation par l'enseignant que T4 est couvert sans CLIP/VLM (bloque la Phase 2).
+- **D14** : jour exact du rendu en décembre 2026.
+- **D6** : accepté provisoirement ; seuils de 2 et 5 points à confirmer avant la Phase 4.
+- **D10** : seuils du budget et niveau de repli, choisis après le pilote de la Phase 2.
 
 ## Blocages connus
-- Approbation des spécifications (bloque la Phase 1).
-- Autorisation requise avant `git init`, création du dépôt GitHub et installation de PyTorch en local.
-- D15 doit être confirmée avant la Phase 2.
-- Date de rendu inconnue (planification en sessions uniquement).
+- Exécution Colab non faite (impossible depuis Kiro).
+- Test du prétraitement PyTorch (`to_tensor`, `augment`) non exécuté en local.
+- D15 non confirmée.
 
 ## Budget de calcul
 Provisoire, non mesuré : environ 180 U, soit 6 à 12 h GPU selon l'hypothèse de 2 à 4 min/U. La valeur sera remplacée par la mesure du pilote (Phase 2). Niveau de repli : non choisi.
 
 ## Dernière expérience validée
-Aucune.
+Aucune expérience (E1–E7) lancée. Run de données `P1-data` : `results/phase1_data_summary.json` (local, commit 627e424).
 
 ## Décisions de projet actées
-Aucune décision technique n'est encore formellement approuvée. Ont été acceptés sur le principe lors de la revue du 21/11/2026 : l'architecture globale, les six thèmes, PathMNIST+ 64×64, ResNet-18 contre DeiT-Tiny, FedAvg à 4 clients simulés et le pipeline expérimental. Faits fixés par le cadrage initial :
-- Dataset principal : PathMNIST (MedMNIST v2/v3), splits officiels, test réservé à l'évaluation finale.
+- Spécifications v0.2 approuvées le 22/11/2026, v0.3 pour la clarification de D6.
+- Dépôt public `An4ss3/MediTrust`.
+- Dataset : PathMNIST+ 64×64, splits officiels, test réservé à l'évaluation finale.
 - Six thèmes obligatoires : T1, T4, T9, T10, T11, T12. T13 optionnel.
+- Partitions de référence : `IID_k4_s0` et `DIR05_k4_s0` (hash ci-dessus), fixées pour toutes les expériences.
 - Prototype de recherche : aucune revendication clinique, de confidentialité formelle ni de déploiement edge réel.
 
 ## Registre de gel (protocole, §7)
@@ -63,7 +80,7 @@ Chaque entrée est ajoutée avant l'évaluation test correspondante : date, comm
 | — | — | aucune entrée | — |
 
 ## Journal des évaluations sur le test
-Aucune évaluation. Le journal détaillé sera tenu dans `results/test_log.csv`.
+Aucune évaluation de modèle sur le test. En Phase 1, seuls les effectifs par classe du test ont été lus (statistique descriptive, sans décision associée).
 
 ## Déviations au protocole
 Aucune.

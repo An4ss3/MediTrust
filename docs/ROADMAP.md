@@ -35,24 +35,27 @@ Ordre ajusté par rapport à la proposition initiale : l'adversarial (Phase 4) p
 - [x] Recherche documentaire et vérification des sources (dataset, modèles, méthodes, références)
 - [x] Rédaction de `CAHIER_DES_CHARGES.md`, `PROTOCOLE_EXPERIMENTAL.md`, `ROADMAP.md`, `PROJECT_STATUS.md`
 - [x] Première revue (Anasse et ChatGPT) : architecture acceptée sur le principe ; 5 corrections demandées et intégrées en v0.2 (évaluation fédérée, D6, discipline du test, budget, T4)
-- [ ] Approbation finale des décisions D1–D15
+- [x] Approbation finale de la v0.2 (22/11/2026) : dépôt public, rendu en décembre 2026 (jour à confirmer), D6 accepté provisoirement avec la clarification « alerte, pas de rejet automatique » (v0.3)
 - [ ] Confirmation par l'enseignant de la couverture de T4 sans CLIP/VLM (D15). Elle peut être obtenue en parallèle de la Phase 1, mais doit l'être avant la Phase 2
 
 ## Phase 1 — Environnement et exploration de PathMNIST
 
+**Statut : implémentée et validée en local le 22/11/2026 ; exécution Colab à faire par Anasse.**
 **Objectif :** une base de code minimale, testée, qui charge les données et produit les partitions.
 **Dépendances :** Phase 0 approuvée ; décision D12 (visibilité du dépôt) ; approbation de `git init` et de la création du dépôt.
 **Livrables :** `requirements.txt`, `.gitignore`, README initial, `src/data.py`, `tests/`, `notebooks/01_data.ipynb`, `results/partitions/`.
 
-- [ ] Vérifier les versions disponibles sur Colab (Python, torch, CUDA) et figer `requirements.txt`
-- [ ] Créer un environnement virtuel local (installation de torch CPU, soumise à approbation car volumineuse)
-- [ ] `src/data.py` : téléchargement ou cache Drive de `pathmnist_64.npz`, contrôle MD5, vérification des effectifs, dataset en mémoire, augmentations tensorielles
-- [ ] Statistiques : effectifs par classe et par split, planche d'images par classe
-- [ ] Partitions `IID` et `DIR05` (train et val), heatmaps, fichiers d'indices versionnés
-- [ ] Tests pytest : partitions disjointes et couvrantes, formes, bornes [0, 1]
-- [ ] Notebook 01 exécuté sur Colab depuis une session vierge
+- [x] Dépôt public `https://github.com/An4ss3/MediTrust` créé et poussé (commit `627e424`) ; un clone anonyme passe les tests
+- [x] `requirements.txt` minimal (bornes inférieures). Versions exactes de Colab non vérifiées depuis le PC : à relever lors de l'exécution du notebook 01
+- [x] Pas d'environnement PyTorch local (non nécessaire en Phase 1) ; seul `pytest` a été installé en local
+- [x] `src/data.py` : téléchargement avec contrôle MD5, vérification des formes, des effectifs et des étiquettes, conversion en tenseur, augmentations tensorielles
+- [x] Statistiques : effectifs par classe et par split, planche d'images par classe (`results/figures/`)
+- [x] Partitions `IID` et `DIR05` (train et val), heatmaps, fichiers d'indices versionnés (`results/partitions/`)
+- [x] Tests pytest : 13 réussis en local (dont les tests sur le vrai dataset) ; 1 test (prétraitement PyTorch) à exécuter sur Colab
+- [x] Cellules du notebook 01 exécutées en local (hors chemin Colab)
+- [ ] Notebook 01 exécuté sur Colab depuis une session vierge (Anasse) : test PyTorch, hash des partitions identiques, versions relevées
 
-**Validation :** effectifs 89 996 / 10 004 / 7 180 et MD5 confirmés dans la sortie du notebook ; `pytest` vert ; partitions commitées.
+**Validation :** effectifs 89 996 / 10 004 / 7 180 et MD5 confirmés en local ; `pytest` vert en local ; partitions commitées. Reste : l'exécution sur Colab.
 
 ## Phase 2 — Baselines CNN et ViT (E1)
 
