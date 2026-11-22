@@ -1,0 +1,7 @@
+# Phase 1 dependencies (data pipeline and tests).
+# On Google Colab, torch is preinstalled: keep its version and do not reinstall it.
+# Later phases will add their own packages (timm, scikit-learn, onnx, onnxruntime, gradio).
+numpy>=1.26
+matplotlib>=3.8
+pytest>=8.0
+torch>=2.4
