@@ -108,7 +108,10 @@ def fit(config: dict, train, val, run_id: str, ckpt_root, results_dir,
     start_epoch, history, train_seconds = 0, [], 0.0
     resumed_from = None
     if ckpt_path.exists():
-        state = torch.load(ckpt_path, map_location=device, weights_only=False)
+        # Load on CPU: the RNG states must stay CPU ByteTensors (map_location="cuda" would move
+        # them to the GPU and torch.set_rng_state would fail). load_state_dict copies the model
+        # and optimizer tensors to the device of the parameters.
+        state = torch.load(ckpt_path, map_location="cpu", weights_only=False)
         mismatch = {k: (state["config"][k], cfg[k]) for k in RESUME_KEYS if state["config"][k] != cfg[k]}
         if mismatch:
             raise ValueError(f"checkpoint {ckpt_path} has a different configuration: {mismatch}")
@@ -117,6 +120,8 @@ def fit(config: dict, train, val, run_id: str, ckpt_root, results_dir,
         scaler.load_state_dict(state["scaler"])
         start_epoch, history, train_seconds = state["epoch"], state["history"], state["train_seconds"]
         torch.set_rng_state(state["rng_cpu"])
+        if device.type == "cuda" and "rng_cuda" in state:  # absent in checkpoints saved before this fix
+            torch.cuda.set_rng_state(state["rng_cuda"], device)
         resumed_from = start_epoch
 
     images = torch.from_numpy(np.ascontiguousarray(train[0])).to(device)  # uint8, ~1.1 GB on GPU
@@ -176,9 +181,12 @@ def fit(config: dict, train, val, run_id: str, ckpt_root, results_dir,
             "val_seconds": val_metrics["inference_seconds"], "peak_gpu_mb": peak_mb,
             "val": {k: val_metrics[k] for k in ("accuracy", "macro_f1", "auroc_macro", "nll", "ece")},
         })
+        rng = {"rng_cpu": torch.get_rng_state()}
+        if device.type == "cuda":
+            rng["rng_cuda"] = torch.cuda.get_rng_state(device)  # CPU ByteTensor as well
         _save_atomic({"config": cfg, "epoch": epoch + 1, "history": history, "train_seconds": train_seconds,
                       "model": model.state_dict(), "optimizer": opt.state_dict(),
-                      "scaler": scaler.state_dict(), "rng_cpu": torch.get_rng_state()}, ckpt_path)
+                      "scaler": scaler.state_dict(), **rng}, ckpt_path)
 
         done = epoch + 1 == cfg["epochs"]
         interrupted = stop_after_epoch is not None and epoch + 1 == stop_after_epoch and not done

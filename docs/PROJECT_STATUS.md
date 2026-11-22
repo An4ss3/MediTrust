@@ -85,6 +85,9 @@ Aucune évaluation de modèle sur le test. `results/test_log.csv` n'existe pas e
 ## Déviations au protocole
 Aucune.
 
+## Incidents
+- 22/11/2026, pilote GPU (`LR-R18-lr0.01-s0`) : la reprise après l'interruption volontaire de l'époque 1 a échoué (`TypeError: RNG state must be a torch.ByteTensor`). Cause : le checkpoint était chargé avec `map_location=<cuda>`, ce qui déplaçait aussi l'état RNG CPU sur le GPU. Correction : chargement sur CPU, l'état RNG CUDA étant désormais aussi sauvegardé et restauré. Test de régression ajouté (`test_resume_rng_state_stays_on_cpu`, et `test_interrupt_resume_on_gpu` exécuté sur Colab). Le checkpoint de l'époque 1, déjà écrit, est intact et réutilisable. Méthodologie inchangée.
+
 ## Risques techniques suivis
 - L'export ONNX utilise l'exportateur TorchScript (`dynamo=False`), déclaré obsolète par PyTorch 2.15 mais fonctionnel. À revérifier en Phase 6 ; repli : exportateur `torch.export`.
 - Données d'entraînement placées sur le GPU (uint8, ≈ 1,1 Go) pour éviter le goulot CPU de Colab ; la mémoire GPU maximale sera mesurée par le pilote.
