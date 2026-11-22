@@ -1,12 +1,12 @@
 # MediTrust — Project Status
 
-**Dernière mise à jour :** 22/11/2026, session 4 (Kiro)
+**Dernière mise à jour :** 22/11/2026, session 6 (Kiro)
 
 ## Phase actuelle
-**PHASE 2 — BASELINES CNN ET VIT (E1)**
+**PHASE 2 — BASELINES CNN ET VIT (E1) : RECHERCHE DU LEARNING RATE**
 
 ## Statut
-**PRÉPARATION TERMINÉE — EN ATTENTE DU PILOTE GPU (Anasse) ET DE SA REVUE.** Aucun entraînement complet, aucune recherche de lr, aucune évaluation sur le test.
+**PILOTE GPU TERMINÉ ET VALIDÉ ; BUDGET N0 APPROUVÉ ; `LR_SEARCH` PRÊT, EN ATTENTE D'APPROBATION POUR EXÉCUTION.** Aucun run E1, aucune évaluation sur le test.
 
 ## Dépôt
 - URL : https://github.com/An4ss3/MediTrust (public), branche `main`.
@@ -16,10 +16,10 @@
 ## Environnement
 | Élément | Local, Python système | Local, `.venv` (vérification Phase 2, ignoré par Git) | Colab |
 |---|---|---|---|
-| Python | 3.13.9 | 3.13.9 | relevé par le notebook 02 |
-| numpy | 2.3.4 | 2.5.5 | idem |
-| torch | non installé | 2.15.0+cpu | préinstallé, non réinstallé |
-| timm | — | 1.0.31 | installé par `requirements.txt` |
+| Python | 3.13.9 | 3.13.9 | 3.13.16 (pilote) |
+| numpy | 2.3.4 | 2.5.5 | relevée dans les JSON de runs |
+| torch | non installé | 2.15.0+cpu | 2.14.1+cu130 (préinstallé), GPU Tesla T4 |
+| timm | — | 1.0.31 | 1.0.31 |
 | onnx / onnxruntime | — | 1.23.2 / 1.32.0 | installés par `requirements.txt` |
 | scikit-learn | 1.7.2 | dernière version | préinstallé |
 | pytest | 9.2.0 | dernière version | installé si absent |
@@ -37,34 +37,44 @@
   - Poids pré-entraînés téléchargés et vérifiés en local : sortie (16, 9) finie pour les deux modèles ; export ONNX : R18 42,6 Mo, écart max 7,4e-6 ; DEIT 21,2 Mo, écart max 5,3e-6 ; argmax identiques.
   - Tests : **34 réussis** dans `.venv` (dont les tests sur le vrai dataset) ; **16 réussis, 4 ignorés** avec le Python système sans torch.
   - `notebooks/02_baselines.ipynb` : modes `PILOT` (défaut), `LR_SEARCH`, `FULL_E1` (verrouillé par `CONFIRM_FULL_E1` et `FROZEN_LR`). Le split test est retiré de la mémoire après chargement. Exécution de contrôle sur CPU avec données réduites (`MEDITRUST_SMOKE=1`) : les 3 modes passent ; l'interruption puis la reprise fonctionnent ; le garde-fou `FULL_E1` bloque. Les chiffres de temps de cette exécution CPU n'ont aucune valeur de budget.
+- Session 5 : correction de la reprise sur GPU (commit `63a25f6`, voir « Incidents »).
+- **22/11/2026 : pilote GPU exécuté par Anasse sur Colab (T4, commit `63a25f6`, `MODE = "PILOT"`, `SMOKE = false`) et revu par Anasse et ChatGPT.** Valeurs rapportées depuis `P2-pilot.json` (fichier sur Drive, non versionné, non inspecté par Kiro) :
+
+  | Modèle | Run | Temps/époque | Débit train | Validation | Pic GPU | Checkpoint |
+  |---|---|---|---|---|---|---|
+  | R18 | `LR-R18-lr0.01-s0` | 101,17 s | 889,57 img/s | 4,24 s | 3 285 Mo | 85,41 Mo |
+  | DEIT | `LR-DEIT-lr0.01-s0` | 119,15 s | 755,34 img/s | 4,51 s | 3 302 Mo | 42,27 Mo |
+
+  Contrôles d'architecture, exports ONNX et recalcul de l'attention réussis sur Colab. Ces mesures reproduisent exactement, avec `estimate_budget`, les projections de 7,50 h (M = R18) et 8,28 h (M = DEIT), marge de 30 % incluse.
+- Session 6 : cellule `LR_SEARCH` du notebook 02 complétée (indique pour chaque run s'il est réutilisé ou entraîné, vérifie 2 époques terminées, enregistre `P2-lr-search.json` sur Drive). Vérifiée par une exécution à blanc avec `fit()` simulé (aucun entraînement local) : runs à 0,01 réutilisés, règle macro-F1 puis NLL correcte.
 
 ## Tâche en cours
-Pilote GPU sur Colab (Anasse) : `notebooks/02_baselines.ipynb`, `MODE = "PILOT"`.
+Approbation de l'exécution de `LR_SEARCH` (notebook 02).
 
 ## Prochaine tâche
-1. Anasse : exécuter le pilote, puis envoyer `results/P2-pilot.json` (et la sortie des sections 7–8) pour revue.
-2. Après revue : choisir le niveau de repli et l'approuver ; lancer `LR_SEARCH` ; geler les lr ; puis seulement `FULL_E1`.
+1. Anasse (après approbation) : exécuter `MODE = "LR_SEARCH"` sur Colab (4 runs restants : lr 0,003 et 0,03 × R18 et DEIT, 2 époques, seed 0 ; ≈ 30–35 min de GPU estimées d'après le pilote), puis envoyer `results/P2-lr-search.json`.
+2. Revue des lr proposés, puis gel des lr par architecture.
+3. `FULL_E1` seulement après la résolution de D15 et le gel des lr.
 
 ## Décisions en attente
-- **D15** : confirmation par l'enseignant que T4 est couvert sans CLIP/VLM (bloque la poursuite de la Phase 2 au-delà de la préparation).
+- **D15** : confirmation par l'enseignant que T4 est couvert sans CLIP/VLM. Bloque les runs définitifs E1 ; la recherche du lr peut se faire avant.
 - **D14** : jour exact du rendu en décembre 2026.
-- **D10** : niveau de repli, à proposer à partir du pilote mesuré.
-- **Correction du budget E4 (à approuver)** : le décompte détaillé des passes d'attaque dans `estimate_budget` donne pour E4 ≈ 37,6 U (20 entraînement FGSM-RS, 1,1 suivi PGD, 6,9 évaluation validation pour D6, 8,8 évaluation test PGD/FGSM, 0,8 courbes FGSM E1) au lieu de ≈ 25 U au protocole §9, plus ≈ 55,6 U de contingence si le PGD renforcé de D6 est déclenché. Total obligatoire N0 ≈ 192 U (protocole : ≈ 180). Aucune décision scientifique ne change ; seul le tableau §9 du protocole serait mis à jour, après approbation.
+- **Correction du tableau §9 du protocole** : les projections approuvées (7,50 h / 8,28 h) utilisent déjà le décompte détaillé (≈ 192 U, dont E4 ≈ 37,6 U ; contingence PGD renforcé ≈ 55,6 U, ≈ 1,2 h pour M = R18). Le tableau §9 indique encore ≈ 180 U et E4 ≈ 25 U : à aligner si Anasse le confirme.
 - **D6** : accepté provisoirement ; seuils de 2 et 5 points à confirmer avant la Phase 4.
 
 ## Blocages connus
-- Pilote GPU non exécuté (impossible depuis Kiro).
-- D15 non confirmée.
+- D15 non confirmée (bloque `FULL_E1`).
 
 ## Budget de calcul
-Provisoire : ≈ 192 U au niveau N0 (décompte détaillé ci-dessus). Les heures seront calculées par le notebook 02 à partir des temps mesurés. Niveau de repli : non choisi.
+**Niveau N0 approuvé le 22/11/2026** (10 époques, 3 seeds, 4 clients, protocole adversarial complet). Projection mesurée : 7,50 h si M = R18, 8,28 h si M = DEIT (marge 30 % incluse), soit ≈ 3 à 4 sessions Colab de 2,5 h. Provisoire : à recalculer après E1 avec l'architecture M retenue et à surveiller au fil des expériences.
 
 ## Dernière expérience validée
-Aucune expérience (E1–E7) lancée. Dernier run validé : `P1-data` (Phase 1).
+Aucune expérience (E1–E7) lancée. Dernier run validé : `P2-pilot` (pilote GPU, 22/11/2026), runs `LR-R18-lr0.01-s0` et `LR-DEIT-lr0.01-s0` (2 époques chacun, sur Drive).
 
 ## Décisions de projet actées
 - Spécifications v0.2 approuvées le 22/11/2026, v0.3 pour la clarification de D6.
 - Phase 1 approuvée le 22/11/2026.
+- Pilote GPU validé et **budget N0 approuvé** le 22/11/2026 (aucune réduction d'époques, de seeds ni de résolution).
 - Dépôt public `An4ss3/MediTrust`.
 - Dataset : PathMNIST+ 64×64, splits officiels, test réservé à l'évaluation finale.
 - Six thèmes obligatoires : T1, T4, T9, T10, T11, T12. T13 optionnel.

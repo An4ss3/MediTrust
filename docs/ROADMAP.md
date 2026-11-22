@@ -59,7 +59,7 @@ Ordre ajusté par rapport à la proposition initiale : l'adversarial (Phase 4) p
 
 ## Phase 2 — Baselines CNN et ViT (E1)
 
-**Statut : implémentation et tests locaux terminés (22/11/2026) ; pilote GPU à exécuter par Anasse ; aucun entraînement complet lancé.**
+**Statut : pilote GPU terminé et validé (22/11/2026), budget N0 approuvé ; recherche du lr prête, à exécuter par Anasse après approbation ; aucun entraînement E1 lancé.**
 **Objectif :** comparer `R18` et `DEIT` en centralisé et choisir le modèle de pipeline M.
 **Dépendances :** Phase 1 ; D15 confirmée (en attente : la préparation continue sans CLIP, la Phase 2 complète reste bloquée).
 **Livrables :** `src/models.py`, `src/train.py`, `src/evaluate.py` (`metrics_from_stats`, verrou du test, registre de gel), `notebooks/02_baselines.ipynb`, `results/E1/`.
@@ -70,10 +70,11 @@ Ordre ajusté par rapport à la proposition initiale : l'adversarial (Phase 4) p
 - [x] Export ONNX de test des deux modèles : parité ONNX Runtime/PyTorch < 1e-5 en local, sur tenseurs synthétiques
 - [x] Métriques par statistiques suffisantes (`metrics_from_stats`) ; tests d'égalité fédéré/regroupé et contre-exemple macro-F1
 - [x] Notebook 02 (modes `PILOT` par défaut, `LR_SEARCH`, `FULL_E1` verrouillé) ; exécution de contrôle sur CPU avec données réduites
-- [ ] Pilote GPU sur Colab (Anasse) : chronométrage (t_U par architecture), mémoire, taille des checkpoints, temps de validation, reprise sur GPU
-- [ ] Revue du pilote ; puis recherche du lr sur la validation (mode `LR_SEARCH`)
-- [ ] Projection du budget mesuré, choix du niveau de repli N0–N3 (protocole, §9) et gel avant E1 ; N3 seulement avec approbation
-- [ ] 6 runs E1 (2 modèles × 3 seeds)
+- [x] Pilote GPU sur Colab (Anasse, T4, commit `63a25f6`) : R18 101,2 s/époque, 890 img/s, pic 3 285 Mo, checkpoint 85,4 Mo ; DEIT 119,2 s/époque, 755 img/s, pic 3 302 Mo, checkpoint 42,3 Mo ; validation 4,2–4,5 s ; reprise sur GPU fonctionnelle après correction
+- [x] Revue du pilote (Anasse et ChatGPT, 22/11/2026)
+- [x] Projection du budget mesuré : 7,50 h (M = R18) ou 8,28 h (M = DEIT), marge de 30 % incluse → **niveau N0 approuvé** (10 époques, 3 seeds, aucune réduction)
+- [ ] Recherche du lr (`LR_SEARCH`, Anasse, après approbation) : 4 runs restants (lr 0,003 et 0,03 × 2 modèles), runs à 0,01 réutilisés ; puis revue et gel des lr
+- [ ] 6 runs E1 (2 modèles × 3 seeds) — bloqués jusqu'à la résolution de D15 et au gel des lr
 - [ ] Contrôle de plausibilité CR3 sur la validation ; application de la règle D3 ; gel (lr, N, checkpoints, M) **avant** l'évaluation test
 - [ ] Évaluation test et tableau E1 (comparaison au benchmark à titre descriptif)
 
