@@ -40,7 +40,7 @@ Ordre ajusté par rapport à la proposition initiale : l'adversarial (Phase 4) p
 
 ## Phase 1 — Environnement et exploration de PathMNIST
 
-**Statut : implémentée et validée en local le 22/11/2026 ; exécution Colab à faire par Anasse.**
+**Statut : TERMINÉE ET APPROUVÉE le 22/11/2026** (validée en local, puis sur Colab par Anasse : 14 tests réussis, partitions identiques aux fichiers versionnés).
 **Objectif :** une base de code minimale, testée, qui charge les données et produit les partitions.
 **Dépendances :** Phase 0 approuvée ; décision D12 (visibilité du dépôt) ; approbation de `git init` et de la création du dépôt.
 **Livrables :** `requirements.txt`, `.gitignore`, README initial, `src/data.py`, `tests/`, `notebooks/01_data.ipynb`, `results/partitions/`.
@@ -53,21 +53,25 @@ Ordre ajusté par rapport à la proposition initiale : l'adversarial (Phase 4) p
 - [x] Partitions `IID` et `DIR05` (train et val), heatmaps, fichiers d'indices versionnés (`results/partitions/`)
 - [x] Tests pytest : 13 réussis en local (dont les tests sur le vrai dataset) ; 1 test (prétraitement PyTorch) à exécuter sur Colab
 - [x] Cellules du notebook 01 exécutées en local (hors chemin Colab)
-- [ ] Notebook 01 exécuté sur Colab depuis une session vierge (Anasse) : test PyTorch, hash des partitions identiques, versions relevées
+- [x] Notebook 01 exécuté sur Colab depuis une session vierge (Anasse, 22/11/2026) : 14 tests réussis, hash `IID` et `DIR05` identiques
 
-**Validation :** effectifs 89 996 / 10 004 / 7 180 et MD5 confirmés en local ; `pytest` vert en local ; partitions commitées. Reste : l'exécution sur Colab.
+**Validation :** effectifs 89 996 / 10 004 / 7 180 et MD5 confirmés en local et sur Colab ; `pytest` vert en local et sur Colab ; partitions commitées et reproduites.
 
 ## Phase 2 — Baselines CNN et ViT (E1)
 
+**Statut : implémentation et tests locaux terminés (22/11/2026) ; pilote GPU à exécuter par Anasse ; aucun entraînement complet lancé.**
 **Objectif :** comparer `R18` et `DEIT` en centralisé et choisir le modèle de pipeline M.
-**Dépendances :** Phase 1 ; D15 confirmée.
+**Dépendances :** Phase 1 ; D15 confirmée (en attente : la préparation continue sans CLIP, la Phase 2 complète reste bloquée).
 **Livrables :** `src/models.py`, `src/train.py`, `src/evaluate.py` (`metrics_from_stats`, verrou du test, registre de gel), `notebooks/02_baselines.ipynb`, `results/E1/`.
 
-- [ ] `MediTrustModel` (upsampling, normalisation, backbone timm) ; test du recalcul de l'attention Q, K, V contre timm
-- [ ] Boucle d'entraînement avec checkpoint et reprise ; test d'interruption volontaire
-- [ ] `evaluate_test` qui refuse tout run absent de `results/freeze.json` ; test pytest de ce refus
-- [ ] Export ONNX de test des deux modèles (dé-risquage précoce de la Phase 6)
-- [ ] Pilote : chronométrage (t_U par architecture), mémoire, choix du lr sur la validation
+- [x] `MediTrustModel` (upsampling, normalisation, backbone timm) ; test du recalcul de l'attention Q, K, V contre timm (écart max < 1e-5, attention fusionnée ou non)
+- [x] Boucle d'entraînement avec checkpoint et reprise ; test d'interruption volontaire (reprise identique à un run ininterrompu, sur CPU)
+- [x] `evaluate_test` qui refuse tout run absent de `results/freeze.json` ; test pytest de ce refus
+- [x] Export ONNX de test des deux modèles : parité ONNX Runtime/PyTorch < 1e-5 en local, sur tenseurs synthétiques
+- [x] Métriques par statistiques suffisantes (`metrics_from_stats`) ; tests d'égalité fédéré/regroupé et contre-exemple macro-F1
+- [x] Notebook 02 (modes `PILOT` par défaut, `LR_SEARCH`, `FULL_E1` verrouillé) ; exécution de contrôle sur CPU avec données réduites
+- [ ] Pilote GPU sur Colab (Anasse) : chronométrage (t_U par architecture), mémoire, taille des checkpoints, temps de validation, reprise sur GPU
+- [ ] Revue du pilote ; puis recherche du lr sur la validation (mode `LR_SEARCH`)
 - [ ] Projection du budget mesuré, choix du niveau de repli N0–N3 (protocole, §9) et gel avant E1 ; N3 seulement avec approbation
 - [ ] 6 runs E1 (2 modèles × 3 seeds)
 - [ ] Contrôle de plausibilité CR3 sur la validation ; application de la règle D3 ; gel (lr, N, checkpoints, M) **avant** l'évaluation test
